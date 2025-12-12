@@ -56,6 +56,8 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         _selectedDate.value=date
     }
 
+    /* sample commit
+     */
     fun insertTask(task_name: String) {
         viewModelScope.launch {
             val newTask = Task( task_name = task_name,
