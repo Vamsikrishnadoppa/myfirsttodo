@@ -56,7 +56,7 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         _selectedDate.value=date
     }
 
-    /* sample commit
+    /* sample commit in UAT-2
      */
     fun insertTask(task_name: String) {
         viewModelScope.launch {
