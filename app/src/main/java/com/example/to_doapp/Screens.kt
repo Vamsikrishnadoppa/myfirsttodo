@@ -1,6 +1,7 @@
 package com.example.to_doapp
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,13 +31,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
@@ -66,73 +72,106 @@ fun TaskHomeScreen(
     LaunchedEffect(selectedDate) {  // Load tasks once when screen opens
         viewModel.tasksforselecteddate()
     }
-    Box(modifier = Modifier.fillMaxSize()){
-    Column(modifier = Modifier.padding(16.dp),) {
-        // Row to set date and day
-        Row (modifier = Modifier.fillMaxWidth(1f),
-            horizontalArrangement = Arrangement.SpaceBetween) {
-            // This box is to hold the
-            Box(
-                modifier = Modifier
-                    .clickable { showDatePicker = true }
-                    .padding(12.dp)
-                    .width(120.dp)
-                    .height(25.dp)
-                    .background(Color.LightGray),
-
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.padding(16.dp,26.dp,16.dp,0.dp)) {
+            // Row to set date and day
+            Row(
+                modifier = Modifier.fillMaxWidth(1f),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = SimpleDateFormat("dd-MMM-yyyy", Locale.getDefault())
-                        .format(selectedDate),
-                    fontSize = 18.sp,
-                )
-            }
+                // This box is to hold the date
+                Box(
+                    modifier = Modifier
+                        .clickable{showDatePicker=true}
+                ) {
+                    Row(modifier = Modifier.padding(8.dp)) {
+                        Text(
+                            text = SimpleDateFormat("dd", Locale.getDefault())
+                                .format(selectedDate),
+                            fontSize = 42.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Column(
+                            modifier = Modifier.padding(5.dp,8.dp,0.dp,0.dp)
+                        ) {
+                            Text(
+                                text = SimpleDateFormat("MMM", Locale.getDefault()).format(
+                                    selectedDate
+                                ),  // Month
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
 
-            Box( modifier = Modifier
-                .clickable { showDatePicker = true }
-                .padding(12.dp)
-                .width(80.dp)
-                .height(25.dp)
-                .background(Color.LightGray)) {
+                            Text(
+                                text = SimpleDateFormat("yyyy", Locale.getDefault()).format(
+                                    selectedDate
+                                ), // Year
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                }
                 Text(
                     text = SimpleDateFormat("EEEE", Locale.getDefault())
                         .format(selectedDate),
-                    fontSize = 18.sp
+                    fontSize = 20.sp,
+                    modifier =Modifier.padding(14.dp)
                 )
-            }
 
-        }
+
+            }
 
         Spacer(Modifier.height(8.dp))
 
         Text(
             " Tasks for the day ",
             modifier = Modifier.fillMaxWidth(),
-            fontSize = 22.sp
+            fontSize = 22.sp,
+            color = Color.Blue
         )
 
         LazyColumn(modifier = Modifier.padding(top = 16.dp)) {
             items(taskList) { task ->
+
                 Row(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp)
+                        .clickable {
+                            viewModel.updateTask(task.copy(iscompleted = !task.iscompleted))
+                        },
+                    verticalAlignment = Alignment.CenterVertically
 
                 ) {
                     //Text( text = task.task_name, modifier = Modifier.padding(4.dp))
-                    val formattedDate =
-                        SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(task._date)
-                    Text(text = "${task.sl_id} .${task.task_name} .${formattedDate} ", fontSize = 18.sp)
-                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Text(task.task_name, modifier = Modifier.weight(0.5f), fontSize = 18.sp)
+
                     Box(
                         modifier = Modifier
                             .size(25.dp)
                             .clip(CircleShape)
-                            .background(if (task.iscompleted) Color.Green else Color.LightGray)
-                            .clickable {
-                                viewModel.updateTask(task.copy(iscompleted = !task.iscompleted))
-                            }
-                    )
-
-
+                            //  If completed, Green background. If not, Transparent.
+                            .background(if (task.iscompleted) Color.Green else Color.Transparent)
+                            //  Add a border. If not completed, show Gray border. If completed, transparent border.
+                            .border(
+                                width = 2.dp,
+                                color = if (task.iscompleted) Color.Transparent else Color.Gray,
+                                shape = CircleShape
+                            )
+                            ,
+                        contentAlignment = Alignment.Center
+                    ){
+                        if (task.iscompleted){
+                            //  Use the simple 'Check' icon (tick mark) inside the green circle
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "completed",
+                                tint= Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -153,7 +192,8 @@ fun TaskHomeScreen(
             },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(16.dp)
+                .padding(end = 16.dp, bottom = 32.dp),
+            shape = RoundedCornerShape(50.dp)
         ) {
             Icon(Icons.Filled.Add, contentDescription = "Add item")
         }
@@ -168,7 +208,7 @@ fun TaskInputScreen(modifier: Modifier = Modifier, navController: NavHostControl
     var isDateSelected by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showError by remember {mutableStateOf(false) }
-
+    var showSuccess by remember{mutableStateOf(false)}
     var showPopup by remember { mutableStateOf(false) }
 
     BackHandler {
@@ -180,55 +220,84 @@ fun TaskInputScreen(modifier: Modifier = Modifier, navController: NavHostControl
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center) {
 
+            if (showError){               //it is to give message when add task button clicked without entering the task
+                Text("please enter task to insert")
+            }
+
+            if (showSuccess){             // it is to give message when add task button clicked with entering the task
+                Text("you have successfully entered your task")
+            }
+            if(showSuccess){
+                LaunchedEffect(showSuccess) {
+                    kotlinx.coroutines.delay(3000L) //show success message for 3 seconds
+                    navController.popBackStack()       //after success giong back to home screen
+                    //showSuccess=false
+                }
+                           }
             TextField(
                 value = taskName, onValueChange = {
                     taskName = it
+                    // as soon as starts entering error message or success message will disappear
+                    //if (showSuccess)showSuccess=false 
+                    if (showError)showError=false
                 },
                 modifier = Modifier.padding(20.dp),
                 shape = RoundedCornerShape(16.dp),
-                label = { Text("Enter Task", fontSize = 12.sp) },
+                label = { Text("Enter Task", fontSize = 16.sp) },
                 colors = TextFieldDefaults.colors(
                     focusedIndicatorColor = Color.Transparent, // when clicking textfield  no underline
                     unfocusedIndicatorColor = Color.Transparent, //when user not clicking no underline
                 )
             )
 
+
             Spacer(modifier = Modifier.height(13.dp))
-         Row(horizontalArrangement = Arrangement.Center,
-             verticalAlignment = Alignment.CenterVertically) {
-             Button(onClick = { showDatePicker = true }) {
-                 Text("select date")
-             }
-             Spacer(modifier = Modifier.width(10.dp))
-             if (isDateSelected){                                // after isDateselected comes true date picker (clicking ok) ,now telling what to do
-             Text(
-                 text = " ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(selectedDate)}"
-                 )}
-         }
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(onClick = { showDatePicker = true }) {
+                    Text("select date")
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                if (isDateSelected) {                                // after isDateselected comes true date picker (clicking ok) ,now telling what to do
+                    Text(
+                        text = " ${
+                            SimpleDateFormat("dd-MMM-yyyy", Locale.getDefault()).format(
+                                selectedDate
+                            )
+                        }", fontSize = 18.sp
+                    )
+                }
+            }
 
             Button(onClick = {
-
-                if (taskName.isNotEmpty()) {
-                    viewModel.insertTask(taskName)
+              val validTaskName=taskName.trim() //removing spaces from start and end
+                if (validTaskName.isNotEmpty()) {
+                    viewModel.insertTask(validTaskName)
                     taskName = ""
                     showError=false
+                    showSuccess=true
                 }
-                else {showError=true}
+                else {showError=true
+                showSuccess=false}
+
             }) {
                 Text("Add Task")
             }
-
-//            if (taskName.isEmpty()) {
-//                Text(text="please enter the task",
-//                    fontSize = 12.sp)
-//            }
-
         }
-        Button(onClick = { showPopup=true },           //on clicking button we make showPopup true then if(showPopup) condition...
-            modifier = Modifier.align(Alignment.BottomStart)) {
-            Text("Back")
+        FilledIconButton (
+            onClick = { showPopup = true },
+            modifier = Modifier
+                .align(Alignment.TopStart) // Places icon at top-left
+                .padding(16.dp,26.dp,0.dp,0.dp)            // Adds some spacing from the start and top
+        ) {
+            Icon(
+                imageVector = Icons.Filled.ArrowBack,
+                contentDescription = "Back"
+            )
         }
-    }
+           }
     if (showDatePicker) {
         DatePickerSample(
             selectedDate = selectedDate,           // for datepicker to hold selected date
@@ -263,9 +332,7 @@ fun TaskInputScreen(modifier: Modifier = Modifier, navController: NavHostControl
             }
         )
     }
-    if (showError){
-        Text("please enter task to insert")
-    }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
