@@ -1,12 +1,12 @@
-package com.example.to_doapp
+package com.example.to_doapp.db.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import com.example.to_doapp.db.model.Task
 import java.util.Date
-
 
 @Dao
 interface TaskDao {
@@ -23,6 +23,6 @@ interface TaskDao {
     suspend fun getAllTasks(): List<Task>
 
 @Query("SELECT * FROM TASKS WHERE _date BETWEEN :start AND :end")
-suspend fun getselectedTasks(start: Date,end: Date):List<Task>
+suspend fun getselectedTasks(start: Date, end: Date):List<Task>
 
 }

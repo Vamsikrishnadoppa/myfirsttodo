@@ -1,13 +1,13 @@
-package com.example.to_doapp
+package com.example.to_doapp.viewModels
 
-import android.R
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.to_doapp.db.model.Task
+import com.example.to_doapp.db.TaskDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -15,7 +15,7 @@ import java.util.Date
 import java.util.Locale
 
 class TaskViewModel(application: Application) : AndroidViewModel(application) {
-    private val taskdata = TaskDatabase.getDatabase(application).taskDao()
+    private val taskdata = TaskDatabase.Companion.getDatabase(application).taskDao()
     private val _tasks = MutableStateFlow<List<Task>>(emptyList())
     val tasks: StateFlow<List<Task>> = _tasks.asStateFlow()
     private val _selectedDate = MutableStateFlow(Date())   // default = today
@@ -52,6 +52,23 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun getDateValue(): String {
+        return SimpleDateFormat("dd", Locale.getDefault())
+            .format(selectedDate.value)
+    }
+
+    fun getMonthValue(): String {
+        return SimpleDateFormat("MMM", Locale.getDefault()).format(
+            selectedDate.value
+        )
+    }
+
+    fun getYearValue(): String {
+        return SimpleDateFormat("yyyy", Locale.getDefault()).format(
+            selectedDate.value
+        )
+    }
+
     fun updateSelectedDate(date: Date){
         _selectedDate.value=date
     }
@@ -60,9 +77,11 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun insertTask(task_name: String) {
         viewModelScope.launch {
-            val newTask = Task( task_name = task_name,
+            val newTask = Task(
+                task_name = task_name,
                 _date = selectedDate.value,
-                iscompleted = false)
+                iscompleted = false
+            )
             taskdata.insertTask(newTask)
             //loadTasks()
             tasksforselecteddate()

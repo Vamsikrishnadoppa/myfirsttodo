@@ -1,4 +1,4 @@
-package com.example.to_doapp
+package com.example.to_doapp.utils
 
 import androidx.room.TypeConverter
 import java.util.Date

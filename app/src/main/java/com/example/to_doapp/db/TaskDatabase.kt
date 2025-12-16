@@ -1,11 +1,13 @@
-package com.example.to_doapp
+package com.example.to_doapp.db
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-
+import com.example.to_doapp.db.dao.TaskDao
+import com.example.to_doapp.db.model.Task
+import com.example.to_doapp.utils.Converters
 
 @Database(entities = [Task::class], version = 1, exportSchema = false)
 @TypeConverters(Converters::class)
