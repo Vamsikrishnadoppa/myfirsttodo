@@ -43,6 +43,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.capitalize
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.toUpperCase
@@ -50,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.room.util.TableInfo
+import com.example.to_doapp.R
 import com.example.to_doapp.db.model.Task
 import com.example.to_doapp.viewModels.TaskViewModel
 import java.text.SimpleDateFormat
@@ -59,50 +62,55 @@ import kotlin.collections.List
 
 @Composable
 fun TaskHomeScreen(
-    modifier: Modifier = Modifier,navController: NavHostController ,viewModel: TaskViewModel
+    modifier: Modifier = Modifier, navController: NavHostController, viewModel: TaskViewModel
 ) {
     val selectedDate by viewModel.selectedDate.collectAsState()
-    val taskList by viewModel.tasks.collectAsState() //observe tasks from viewmodel
-    var isLoading by remember { mutableStateOf(true )}
+    val taskList by viewModel.tasks.collectAsState()
+    var isLoading by remember { mutableStateOf(true) }
 
     var showDatePicker by remember { mutableStateOf(false) }
-    LaunchedEffect(selectedDate) { // Load tasks once when screen opens
-        isLoading=true
-        viewModel.tasksforselecteddate()
+    LaunchedEffect(selectedDate) {
+        isLoading = true
+        viewModel.tasksForSelectedDate()
         kotlinx.coroutines.delay(500L)
-        isLoading=false
+        isLoading = false
     }
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .padding(10.dp)) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(0.dp)
+    ) {
 
         Column {
             TopContentView(
-                modifier = modifier,
-               // viewModel = viewModel,
+                modifier = modifier.padding(top = 40.dp),
+                viewModel = viewModel,
                 currentDate = selectedDate,
                 onDateSelected = {
-                    showDatePicker=true
+                    showDatePicker = true
                 }
             )
 
             Spacer(Modifier.height(18.dp))
 
-        if (isLoading) {
-            Box (modifier = Modifier.weight(1f).fillMaxWidth(),
-                contentAlignment = Alignment.Center){
-                androidx.compose.material3.CircularProgressIndicator(
-                    color = Color.LightGray
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        color = Color.LightGray
+                    )
+                }
+            } else {
+                TasksMainView(
+                    modifier = modifier.fillMaxWidth(),
+                    allTasksList = taskList,
+                    viewModel = viewModel
                 )
             }
-        }
-        else {
-            TasksMainView(
-                modifier = modifier.fillMaxWidth(),
-                allTasksList = taskList,
-                viewModel = viewModel
-            )
-        }
             if (showDatePicker) {
                 DatePickerSample(
                     selectedDate = selectedDate,
@@ -114,69 +122,78 @@ fun TaskHomeScreen(
                 )
             }
         }
-            FloatingActionButton(
-                onClick = {
-                    navController.navigate("taskinputscreen")
-                },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 32.dp),
-                shape = RoundedCornerShape(45.dp),
-                containerColor = MaterialTheme.colorScheme.primary,
+        FloatingActionButton(
+            onClick = {
+                navController.navigate("taskinputscreen")
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp, bottom = 32.dp),
+            shape = RoundedCornerShape(15.dp),
+            containerColor = MaterialTheme.colorScheme.primary,
 
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add item")
-            }
+            Icon(Icons.Default.Add, contentDescription = "Add item")
+        }
     }
 }
 
 @Composable
 fun TopContentView(
     modifier: Modifier = Modifier,
-    //viewModel: TaskViewModel,
+    viewModel: TaskViewModel,
     currentDate: Date,
-    onDateSelected: (Date) -> Unit
+    onDateSelected: () -> Unit
 ) {
-    Column(modifier = Modifier.padding(16.dp,26.dp,16.dp,0.dp)) {
-        // Row to set date and day
+    Column(
+        modifier = Modifier
+            .padding(24.dp, 50.dp, 24.dp, 0.dp)
+            .clickable(
+                enabled = true,
+                onClick = {
+                    onDateSelected()
+                }
+            ),
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(1f),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Box(
                 modifier = Modifier
-                    .clickable{
-                        onDateSelected(currentDate)
-                        //showDatePicker = true
-                    }
             ) {
                 Row(modifier = Modifier.padding(0.dp)) {
                     Text(
-                        text = SimpleDateFormat("dd", Locale.getDefault()).format(currentDate),
+                        text = viewModel.getDateValue(),
+                        fontFamily = FontFamily(Font(R.font.opensans_bold)),
                         fontSize = 42.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Column(
-                        modifier = Modifier.padding(5.dp,8.dp,0.dp,0.dp)
+                        modifier = Modifier.padding(5.dp, 8.dp, 0.dp, 0.dp)
                     ) {
                         Text(
-                            text = SimpleDateFormat("MMM", Locale.getDefault()).format(currentDate).uppercase(), // Month
+                            text = viewModel.getMonthValue().uppercase(),
+                            fontFamily = FontFamily(Font(R.font.opensans_medium)),
                             fontSize = 17.sp,
                             fontWeight = FontWeight.SemiBold
                         )
 
                         Text(
-                            text = SimpleDateFormat("yyyy", Locale.getDefault()).format(currentDate), // Year
+                            text = viewModel.getYearValue(),
+                            fontFamily = FontFamily(Font(R.font.opensans_light)),
                             fontSize = 14.sp
                         )
                     }
                 }
             }
             Text(
-                text =SimpleDateFormat("EEEE", Locale.getDefault()).format(currentDate).uppercase(),
+                text = SimpleDateFormat("EEEE", Locale.getDefault()).format(currentDate)
+                    .uppercase(),
                 fontSize = 16.sp,
+                fontFamily = FontFamily(Font(R.font.opensans_medium)),
                 fontWeight = FontWeight.SemiBold,
-                modifier =Modifier.padding(14.dp)
+                modifier = Modifier.padding(14.dp)
             )
         }
     }
@@ -189,13 +206,16 @@ fun TasksMainView(
     viewModel: TaskViewModel
 ) {
     if (allTasksList.isEmpty()) {
-       Box (modifier = Modifier.fillMaxSize(),
-           contentAlignment = Alignment.Center) {   // showNoTaskView
-           Text("No Tasks,click the button below to add",
-               fontSize = 16.sp,
-               color = Color.LightGray
-           )
-       }
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                "No Tasks,click the button below to add",
+                fontSize = 16.sp,
+                color = Color.LightGray
+            )
+        }
     } else {
         AllTaskListView(modifier = modifier, allTasksList = allTasksList, viewModel = viewModel)
     }
@@ -210,25 +230,28 @@ fun AllTaskListView(
     val completedTasks = allTasksList.filter { it.iscompleted }
     val pendingTasks = allTasksList.filter { !it.iscompleted }
 
-    Column(modifier = modifier.verticalScroll(rememberScrollState())) {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 5.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
         if (pendingTasks.isNotEmpty()) {
             TaskListView(
                 modifier = modifier,
                 tasksList = pendingTasks,
                 title = "Pending Task",
-                viewModel = viewModel
+                viewModel = viewModel,
+                isCollapsable = false
             )
-            // LazyList for pending tasks
         }
-
         if (completedTasks.isNotEmpty()) {
             TaskListView(
                 modifier = modifier,
                 tasksList = completedTasks,
                 title = "Completed",
-                viewModel = viewModel
+                viewModel = viewModel,
+                isCollapsable = true
             )
-            // LazyList for completed tasks
         }
     }
 }
@@ -238,12 +261,15 @@ fun TaskListView(
     modifier: Modifier = Modifier,
     tasksList: List<Task>,
     viewModel: TaskViewModel,
-    title: String
+    title: String,
+    isCollapsable: Boolean
 ) {
     var isExpanded by remember { mutableStateOf(true) }
-    Column(modifier = modifier
-        .clip(RoundedCornerShape(16.dp))
-        .background(Color.LightGray)) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFFF1F1F1))
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
@@ -255,15 +281,18 @@ fun TaskListView(
                 title = title,
                 number = tasksList.size,
                 isExpanded = isExpanded,
+                isCollapsable = isCollapsable,
                 dropDownAction = {
-                    isExpanded=!isExpanded
+                    if (isCollapsable) {
+                        isExpanded = !isExpanded
+                    }
                 }
             )
         }
         if (isExpanded) {
             LazyColumn(
                 modifier = Modifier
-                    .padding(top = 16.dp)
+                    .padding(top = 16.dp, start = 5.dp)
                     .height((tasksList.size * 50).dp)
             ) {
                 items(tasksList) { task ->
@@ -275,35 +304,54 @@ fun TaskListView(
 }
 
 @Composable
-fun TaskListHeaderView(modifier: Modifier = Modifier,title: String,number: Int,
-                       isExpanded:Boolean,dropDownAction: () -> Unit) {
-    Row(modifier.fillMaxWidth().clickable(onClick = { dropDownAction()}).padding(10.dp), horizontalArrangement = Arrangement.SpaceBetween)
+fun TaskListHeaderView(
+    modifier: Modifier = Modifier, title: String, number: Int,
+    isExpanded: Boolean,
+    isCollapsable: Boolean,
+    dropDownAction: () -> Unit
+) {
+    Row(
+        modifier
+            .fillMaxWidth()
+            .clickable(
+                isCollapsable,
+                onClick = {
+                    if (isCollapsable) {
+                        dropDownAction()
+                    }
+                }
+            )
+            .padding(10.dp), horizontalArrangement = Arrangement.SpaceBetween)
     {
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(title, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = title,
+                fontFamily = FontFamily(Font(R.font.opensans_bold)),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold
+            )
             Text("($number)", fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
-        Icon(
-            imageVector = if (isExpanded)
-                Icons.Default.KeyboardArrowUp
-            else
-                Icons.Default.KeyboardArrowDown,
-            contentDescription = "Expand or collapse",
-            tint = Color.Black
-        )
+        if (isCollapsable) {
+            Icon(
+                imageVector = if (isExpanded)
+                    Icons.Default.KeyboardArrowUp
+                else
+                    Icons.Default.KeyboardArrowDown,
+                contentDescription = "Expand or collapse",
+                tint = Color.Black
+            )
+        }
     }
-
 }
-
-//composable to access tasks
-
 @Composable
-fun TaskItemRow(task: Task,
-                viewModel: TaskViewModel
-               ) {
+fun TaskItemRow(
+    task: Task,
+    viewModel: TaskViewModel
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -318,10 +366,11 @@ fun TaskItemRow(task: Task,
         Text(
             task.task_name,
             modifier = Modifier.weight(0.5f),
+            fontFamily = FontFamily(Font(R.font.opensans_medium)),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium,
             color = if (task.iscompleted) Color.Gray else Color.Black,
-            fontSize = 18.sp
         )
-
         Box(
             modifier = Modifier
                 .size(25.dp)

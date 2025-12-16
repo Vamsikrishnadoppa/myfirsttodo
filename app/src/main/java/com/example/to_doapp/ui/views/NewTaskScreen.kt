@@ -47,41 +47,43 @@ import java.util.Locale
 
 
 @Composable
-fun TaskInputScreen(modifier: Modifier = Modifier, navController: NavHostController, viewModel: TaskViewModel) {
+fun TaskInputScreen(
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    viewModel: TaskViewModel
+) {
     var taskName by remember { mutableStateOf("") }
     val selectedDate by viewModel.selectedDate.collectAsState()
     var showDatePicker by remember { mutableStateOf(false) }
-    var showError by remember {mutableStateOf(false) }
-    var showSuccess by remember{mutableStateOf(false)}
+    var showError by remember { mutableStateOf(false) }
+    var showSuccess by remember { mutableStateOf(false) }
     var showPopup by remember { mutableStateOf(false) }
-
-
     BackHandler {
-        if (taskName.isEmpty()){
+        if (taskName.isEmpty()) {
             navController.popBackStack()
+        } else {
+            showPopup = true
         }
-        else{
-            showPopup = true}
     }
     Box(modifier = Modifier.fillMaxSize()) {
-        Column (modifier = Modifier.padding(12.dp),
+        Column(
+            modifier = Modifier.padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            IconButton  (
+            IconButton(
                 onClick = {
-                    if (taskName.isEmpty()){
+                    if (taskName.isEmpty()) {
                         navController.popBackStack()
+                    } else {
+                        showPopup = true
                     }
-                    else{
-                        showPopup = true}
                 },
                 modifier = Modifier
-                    .align(Alignment.Start) // Places icon at top-left
-                    .padding(8.dp,26.dp,0.dp,0.dp)            // Adds some spacing from the start and top
+                    .align(Alignment.Start)
+                    .padding(8.dp, 26.dp, 0.dp, 0.dp)
             ) {
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
-                   // modifier = Modifier.size(24.dp),
                     contentDescription = "Back"
                 )
             }
@@ -90,11 +92,10 @@ fun TaskInputScreen(modifier: Modifier = Modifier, navController: NavHostControl
                 value = taskName,
                 onValueChange = {
                     taskName = it
-                    // as soon as starts entering error message or success message will disappear
-                    //if (showSuccess)showSuccess=false
-                    if (showError) showError=false
+                    if (showError) showError = false
                 },
-                modifier = Modifier.padding(20.dp)
+                modifier = Modifier
+                    .padding(20.dp)
                     .height(200.dp)
                     .fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -102,8 +103,8 @@ fun TaskInputScreen(modifier: Modifier = Modifier, navController: NavHostControl
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.LightGray.copy(0.4f),
                     unfocusedContainerColor = Color.LightGray.copy(0.4f),
-                    focusedIndicatorColor = Color.Transparent, // when clicking textfield  no underline
-                    unfocusedIndicatorColor = Color.Transparent, //when user not clicking no underline
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
                 )
             )
 
@@ -122,74 +123,79 @@ fun TaskInputScreen(modifier: Modifier = Modifier, navController: NavHostControl
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Text(
-                    text = SimpleDateFormat("dd-MMM-yyyy", Locale.getDefault()).format(selectedDate),
+                    text = SimpleDateFormat(
+                        "dd-MMM-yyyy",
+                        Locale.getDefault()
+                    ).format(selectedDate),
                     fontSize = 18.sp
                 )
 
             }
-            if (showError){               //it is to give message when add task button clicked without entering the task
-                Text("please enter the task to add",
+            if (showError) {
+                Text(
+                    "please enter the task to add",
                     color = Color.Red,
                     fontSize = 16.sp,
-                    )
+                )
             }
 
-            if (showSuccess){             // it is to give message when add task button clicked with entering the task
+            if (showSuccess) {
                 Text("you have successfully entered your task")
             }
 
-            if(showSuccess){
+            if (showSuccess) {
                 LaunchedEffect(showSuccess) {
-                    kotlinx.coroutines.delay(1000L) //show success message for 1 second
-                    navController.popBackStack()       //after success giong back to home screen
-                    //showSuccess=false
+                    kotlinx.coroutines.delay(1000L)
+                    navController.popBackStack()
                 }
             }
 
-                   }
-
-        Button(onClick = {
-            val validTaskName=taskName.trim() //removing spaces from start and end
-            if (validTaskName.isNotEmpty()) {
-                viewModel.insertTask(validTaskName)
-                taskName = ""
-                showError=false
-                showSuccess=true
-            }
-            else {showError=true
-                showSuccess=false}
-
-        },
-        modifier=Modifier
-            .padding(16.dp)
-            .align(Alignment.BottomEnd)) {
-            Text("Add to List")
         }
 
+        Button(
+            onClick = {
+                val validTaskName = taskName.trim()
+                if (validTaskName.isNotEmpty()) {
+                    viewModel.insertTask(validTaskName)
+                    taskName = ""
+                    showError = false
+                    showSuccess = true
+                } else {
+                    showError = true
+                    showSuccess = false
+                }
+
+            },
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.BottomEnd)
+        ) {
+            Text("Add to List")
+        }
 
 
     }
     if (showDatePicker) {
         DatePickerSample(
-            selectedDate = selectedDate,           // for datepicker to hold selected date
+            selectedDate = selectedDate,
             { date ->
-                viewModel.updateSelectedDate(date)     // updating the state of _selectedDate (it holds the date state)
+                viewModel.updateSelectedDate(date)
                 showDatePicker = false
             },
             onDismiss = { showDatePicker = false }
         )
     }
-    if (showPopup) {                            //this tells when showPopup is true then perform the action inside me
+    if (showPopup) {
         AlertDialog(
-            onDismissRequest = { showPopup = false },      //first Popup comes and displays the message when no clicked popup goes away and will stay in same screen
+            onDismissRequest = { showPopup = false },
 
             title = { Text("Are you sure?") },
             text = { Text("Do you want to go back ?") },
 
-            confirmButton = {                   // popup comes when clicked yes then popup goes away and directing to previous screen
+            confirmButton = {
                 TextButton(onClick = {
                     showPopup = false
-                    navController.popBackStack()   // go back
+                    navController.popBackStack()
                 }) {
                     Text("Yes")
                 }
