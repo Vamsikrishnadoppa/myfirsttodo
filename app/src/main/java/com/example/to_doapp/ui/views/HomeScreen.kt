@@ -63,16 +63,13 @@ fun TaskHomeScreen(
 ) {
     val selectedDate by viewModel.selectedDate.collectAsState()
     val taskList by viewModel.tasks.collectAsState() //observe tasks from viewmodel
-    //split the tasks based on their status of completion
-   // val completedTasks = taskList.filter { it.iscompleted }
-   // val pendingTasks = taskList.filter { !it.iscompleted }
     var isLoading by remember { mutableStateOf(true )}
 
     var showDatePicker by remember { mutableStateOf(false) }
     LaunchedEffect(selectedDate) { // Load tasks once when screen opens
         isLoading=true
         viewModel.tasksforselecteddate()
-        kotlinx.coroutines.delay(100L)
+        kotlinx.coroutines.delay(500L)
         isLoading=false
     }
     Box(modifier = Modifier
@@ -91,8 +88,21 @@ fun TaskHomeScreen(
 
             Spacer(Modifier.height(18.dp))
 
-            TasksMainView(modifier = modifier, allTasksList = taskList, viewModel = viewModel)
-
+        if (isLoading) {
+            Box (modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentAlignment = Alignment.Center){
+                androidx.compose.material3.CircularProgressIndicator(
+                    color = Color.LightGray
+                )
+            }
+        }
+        else {
+            TasksMainView(
+                modifier = modifier.fillMaxWidth(),
+                allTasksList = taskList,
+                viewModel = viewModel
+            )
+        }
             if (showDatePicker) {
                 DatePickerSample(
                     selectedDate = selectedDate,
@@ -133,7 +143,6 @@ fun TopContentView(
             modifier = Modifier.fillMaxWidth(1f),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // This box is to hold the date
             Box(
                 modifier = Modifier
                     .clickable{
@@ -180,8 +189,13 @@ fun TasksMainView(
     viewModel: TaskViewModel
 ) {
     if (allTasksList.isEmpty()) {
-        // showNoTaskView
-        Text("")
+       Box (modifier = Modifier.fillMaxSize(),
+           contentAlignment = Alignment.Center) {   // showNoTaskView
+           Text("No Tasks,click the button below to add",
+               fontSize = 16.sp,
+               color = Color.LightGray
+           )
+       }
     } else {
         AllTaskListView(modifier = modifier, allTasksList = allTasksList, viewModel = viewModel)
     }
