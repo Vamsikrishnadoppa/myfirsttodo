@@ -130,7 +130,7 @@ fun TaskHomeScreen(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 16.dp, bottom = 32.dp),
-            shape = RoundedCornerShape(15.dp),
+            shape = RoundedCornerShape(18.dp),
             containerColor = MaterialTheme.colorScheme.primary,
 
             ) {
@@ -372,7 +372,9 @@ fun TaskItemRow(
             .height(50.dp)
             .padding(10.dp)
             .clickable {
-                viewModel.updateTask(task.copy(iscompleted = !task.iscompleted))
+                if (!task.iscompleted) {
+                    isEditing = true
+                }
             },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -385,25 +387,6 @@ fun TaskItemRow(
             fontWeight = FontWeight.Medium,
             color = if (task.iscompleted) Color.Gray else Color.Black,
         )
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(15.dp)
-        ) {
-            if (!task.iscompleted) {
-                androidx.compose.material3.IconButton(
-                    onClick = {
-                        isEditing = true
-                    },
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Icon(
-                        imageVector = androidx.compose.material.icons.Icons.Default.Edit,
-                        contentDescription = "Edit",
-                        tint = Color.Gray
-                    )
-                }
-            }
             Box(
                 modifier = Modifier
                     .size(25.dp)
@@ -412,8 +395,9 @@ fun TaskItemRow(
                     .border(
                         width = 2.dp,
                         color = if (task.iscompleted) Color.Transparent else Color.Gray,
-                        shape = CircleShape
-                    ),
+                        shape = CircleShape,
+                    )
+                    .clickable{viewModel.updateTask(task.copy(iscompleted = !task.iscompleted))},
                 contentAlignment = Alignment.Center
             ) {
                 if (task.iscompleted) {
@@ -427,7 +411,6 @@ fun TaskItemRow(
             }
         }
     }
-}
 
 @Composable
 fun EditTaskDialog(
