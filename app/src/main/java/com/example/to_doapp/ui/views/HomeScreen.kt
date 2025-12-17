@@ -354,43 +354,18 @@ fun TaskItemRow(
     viewModel: TaskViewModel
 ) {
     var isEditing by remember { mutableStateOf(false) }
-    var editedTaskName by remember { mutableStateOf(task.task_name) }
 
     if (isEditing) {
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { isEditing = false },
-            title = { Text("Edit Task") },
-            text = {
-                androidx.compose.material3.TextField(
-                    value = editedTaskName,
-                    onValueChange = { editedTaskName = it },
-                    singleLine = true,
-                    colors = androidx.compose.material3.TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                    )
-                )
-            },
-            confirmButton = {
-                androidx.compose.material3.Button(
-                    onClick = {
-                        if (editedTaskName.isNotEmpty()) {
-                            viewModel.updateTask(task.copy(task_name = editedTaskName))
-                            isEditing = false
-                        }
-                    }
-                ) {
-                    Text("Save")
-                }
-            },
-            dismissButton = {
-                androidx.compose.material3.TextButton(onClick = { isEditing = false }) {
-                    Text("Cancel")
-                }
+        EditTaskDialog(
+            currentName = task.task_name,
+            onDismiss = { isEditing = false },
+            onSave = { editedTaskName ->
+                viewModel.updateTask(task.copy(task_name = editedTaskName))
+                isEditing = false
             }
         )
-    }
 
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -413,12 +388,11 @@ fun TaskItemRow(
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.spacedBy(15.dp)
         ) {
             if (!task.iscompleted) {
                 androidx.compose.material3.IconButton(
                     onClick = {
-                        editedTaskName = task.task_name
                         isEditing = true
                     },
                     modifier = Modifier.size(24.dp)
@@ -430,29 +404,72 @@ fun TaskItemRow(
                     )
                 }
             }
-
-
             Box(
-            modifier = Modifier
-                .size(25.dp)
-                .clip(CircleShape)
-                .background(if (task.iscompleted) Color.Blue.copy(0.3f) else Color.Transparent)
-                .border(
-                    width = 2.dp,
-                    color = if (task.iscompleted) Color.Transparent else Color.Gray,
-                    shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            if (task.iscompleted) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "completed",
-                    tint = Color.White,
-                    modifier = Modifier.size(16.dp)
-                )
+                modifier = Modifier
+                    .size(25.dp)
+                    .clip(CircleShape)
+                    .background(if (task.iscompleted) Color.Blue.copy(0.3f) else Color.Transparent)
+                    .border(
+                        width = 2.dp,
+                        color = if (task.iscompleted) Color.Transparent else Color.Gray,
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                if (task.iscompleted) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "completed",
+                        tint = Color.White,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
             }
         }
     }
 }
+
+@Composable
+fun EditTaskDialog(
+    modifier: Modifier = Modifier, currentName: String,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit,
+) {
+    var editedTaskName by remember { mutableStateOf(currentName) }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color.White,
+        title = { Text("Edit Task") },
+        text = {
+            androidx.compose.material3.TextField(
+                value = editedTaskName,
+                onValueChange = { editedTaskName = it },
+                singleLine = true,
+                shape = RoundedCornerShape(10.dp),
+                colors = androidx.compose.material3.TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedContainerColor = Color.LightGray.copy(0.3f),
+                    unfocusedContainerColor = Color.LightGray.copy(0.3f),
+                    cursorColor = Color.Black
+                )
+            )
+        },
+        confirmButton = {
+            androidx.compose.material3.Button(
+                onClick = {
+                    if (editedTaskName.isNotEmpty()) {
+                        onSave(editedTaskName)
+                    }
+                }
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            androidx.compose.material3.TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
