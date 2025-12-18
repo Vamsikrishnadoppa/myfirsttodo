@@ -28,6 +28,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -229,7 +231,9 @@ fun AllTaskListView(
     viewModel: TaskViewModel
 ) {
     val completedTasks = allTasksList.filter { it.iscompleted }
-    val pendingTasks = allTasksList.filter { !it.iscompleted }
+    val pendingTasks = allTasksList
+        .filter { !it.iscompleted }
+        .sortedByDescending { it.isStarred }
 
     Column(
         modifier = Modifier
@@ -379,6 +383,22 @@ fun TaskItemRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
+        if (!task.iscompleted) {
+            androidx.compose.material3.IconButton(
+                onClick = {
+                    viewModel.updateTask(task.copy(isStarred = !task.isStarred))
+                },
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    imageVector = if (task.isStarred) Icons.Default.Star else Icons.Outlined.Star,
+                    contentDescription = "Priority",
+                    tint = if (task.isStarred) Color(0xFFFFC107) else Color.Gray.copy(0.4f),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+
         Text(
             task.task_name,
             modifier = Modifier.weight(0.5f),
